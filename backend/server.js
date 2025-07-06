@@ -11,13 +11,24 @@ const PORT = process.env.PORT || 5000;
 app.use(cors());
 app.use(bodyParser.json());
 
-// MySQL connection
+// MySQL connection MySQL Administrator
+// const db = mysql.createConnection({
+//     host: 'localhost',
+//     user: 'root', // replace with your MySQL username
+//     password: '', // replace with your MySQL password
+//     //database: 'todo_db'
+//     port: '3307',
+//     database: 'ospar_db_api'
+// });
+
+// MySQL connection XAMPP
 const db = mysql.createConnection({
     host: 'localhost',
     user: 'root', // replace with your MySQL username
     password: '', // replace with your MySQL password
     //database: 'todo_db'
-    database: 'ospar_db_api'
+    port: '3307',
+    database: 'todo_db'
 });
 
 // Connect to MySQL

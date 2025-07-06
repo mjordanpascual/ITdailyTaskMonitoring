@@ -12,7 +12,7 @@ function TodoApp() {
     useEffect(() => {
         const fetchTodos = async () => {
             try {
-                const response = await axios.get('http://localhost:5000/todos');
+                const response = await axios.get('http://192.168.1.7:5000/todos');
                 setTodos(response.data);
             } catch (error) {
                 console.error('Error fetching todos:', error);
@@ -24,7 +24,7 @@ function TodoApp() {
     const addTodo = async () => {
         if (!newTodo.trim()) return;
         try {
-            const response = await axios.post('http://localhost:5000/todos', { text: newTodo });
+            const response = await axios.post('http://192.168.1.7:5000/todos', { text: newTodo });
             setTodos([...todos, response.data]);
             setNewTodo('');
         } catch (error) {
@@ -36,7 +36,7 @@ function TodoApp() {
         const todo = todos.find(todo => todo.id === id);
         const updatedTodo = { ...todo, completed: !todo.completed };
         try {
-            await axios.put(`http://localhost:5000/todos/${id}`, updatedTodo);
+            await axios.put(`http://192.168.1.7:5000/todos/${id}`, updatedTodo);
             setTodos(todos.map(todo => (todo.id === id ? updatedTodo : todo)));
         } catch (error) {
             console.error('Error updating todo:', error);
@@ -44,12 +44,19 @@ function TodoApp() {
     };
 
     const deleteTodo = async (id) => {
+        const confirmDelete = window.confirm('Are you sure you want to delete this todo?');
+        if (!confirmDelete) return;
         try {
-            await axios.delete(`http://localhost:5000/todos/${id}`);
+            await axios.delete(`http://192.168.1.7:5000/todos/${id}`);
             setTodos(todos.filter(todo => todo.id !== id));
         } catch (error) {
             console.error('Error deleting todo:', error);
         }
+    };
+
+    const deleteTodoAll = async (id) => {
+            await axios.delete(`http://192.168.1.7:5000/todos/${id}`);
+            setTodos(todos.filter(todo => todo.id !== id));
     };
 
     const startEditing = (todo) => {
@@ -64,7 +71,7 @@ function TodoApp() {
         }
         const updatedTodo = { id, text: editText, completed: todos.find(todo => todo.id === id).completed };
         try {
-            await axios.put(`http://localhost:5000/todos/${id}`, updatedTodo);
+            await axios.put(`http://192.168.1.7:5000/todos/${id}`, updatedTodo);
             setTodos(todos.map(todo => (todo.id === id ? updatedTodo : todo)));
             setEditingId(null);
             setEditText('');
@@ -73,20 +80,27 @@ function TodoApp() {
         }
     };
 
-    const filteredTodos = todos.filter(todo => {
+    const filteredTodos = todos.filter(todo =>   {
         if (filter === 'all') return true;
         if (filter === 'active') return !todo.completed;
         if (filter === 'completed') return todo.completed;
         return true;
     });
 
-    const clearCompleted = async () => {
+const clearCompleted = async () => {
+    const confirmDeletion = window.confirm("Are you sure you want to delete all completed tasks?");
+    if (!confirmDeletion) return;
+    try {
         const completedTodos = todos.filter(todo => todo.completed);
-        await Promise.all(completedTodos.map(todo => deleteTodo(todo.id)));
+        await Promise.all(completedTodos.map(todo => deleteTodoAll(todo.id)));
         setTodos(todos.filter(todo => !todo.completed));
-    };
+    } catch (error) {
+        console.error('Error deleting todo:', error);
+    }
+};
 
     const itemsLeft = todos.filter(todo => !todo.completed).length;
+    const completedTodosCount = todos.filter(todo => todo.completed).length;
 
     return (
         <div className="bg-green-700 h-screen py-5 px-4 sm:px-6 lg:px-8">
@@ -206,7 +220,8 @@ function TodoApp() {
                         </div>
                         <button
                             onClick={clearCompleted}
-                            className="hover:underline"
+                            className='px-2 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2'
+                            disabled={completedTodosCount === 0}
                         >
                             Clear completed
                         </button>
